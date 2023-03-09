@@ -8,6 +8,7 @@ import cv2
 from cv2 import dct, idct
 from pywt import dwt2, idwt2
 from .pool import AutoPool
+import time
 
 
 class WaterMarkCore:
@@ -96,7 +97,6 @@ class WaterMarkCore:
         # dct->svd->打水印->逆svd->逆dct
         block, shuffler, i = arg
         wm_1 = self.wm_bit[i % self.wm_size]
-
         u, s, v = svd(dct(block))
         s[0] = (s[0] // self.d1 + 1 / 4 + 1 / 2 * wm_1) * self.d1
 
