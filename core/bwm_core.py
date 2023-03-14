@@ -20,7 +20,7 @@ class WaterMarkCore:
         # init data
         self.img, self.img_YUV = None, None  # self.img 是原图，self.img_YUV 对像素做了加白偶数化
         self.ca, self.hvd, = [np.array([])] * 3, [np.array([])] * 3  # 每个通道 dct 的结果
-        self.ca_block = [np.array([])] * 3  # 每个 channel 存一个四维 array，代表四维分块后的结果
+        self.ca_block = [np.array([])] * 3  # 每个 channel 存一个四维 array，代表四维分块后的结果，表示图像中每个块的DCT系数
         self.ca_part = [np.array([])] * 3  # 四维分块后，有时因不整除而少一部分，self.ca_part 是少这一部分的 self.ca
 
         self.wm_size, self.block_num = 0, 0  # 水印的长度，原图片可插入信息的个数
@@ -73,6 +73,7 @@ class WaterMarkCore:
     def block_add_wm(self, arg):
         if self.fast_mode:
             return self.block_add_wm_fast(arg)
+            # return self.block_add_wm_dct(arg)
         else:
             return self.block_add_wm_slow(arg)
 
@@ -102,10 +103,52 @@ class WaterMarkCore:
 
         return idct(np.dot(u, np.dot(np.diag(s), v)))
 
+    def block_add_wm_dct(self,arg):
+        block, shuffler, i = arg
+        wm_1 = self.wm_bit[i % self.wm_size]
+        block_dct = dct(block)
+        block_dct = self.embed_wm(block_dct,wm_1)
+        return idct(block_dct)
+
+    def extract_wm(self,dct_coeff):
+        # 将DCT系数乘以一个系数，使得最低位变为0，并将结果对该系数取整，得到原始的DCT系数值
+        alpha = 2
+        dct_coeff = int(round(dct_coeff[0,0] * alpha))
+
+        # 将原始的DCT系数值与嵌入水印后的DCT系数值进行比较，得到水印信息的比特位
+        if dct_coeff % 2 == 1:
+            return 1
+        else:
+            return 0
+
+    def embed_wm(self,dct_coeff, wm_bit):
+        # 将DCT系数乘以一个系数，使得最低位变为0
+        alpha = 2
+        if dct_coeff[0,0] % alpha == 1:
+            dct_coeff -= 1
+
+        # 将水印信息的二进制位替换到最低位上
+        if wm_bit == 1:
+            dct_coeff += 1
+
+        # 将DCT系数除以该系数得到嵌入水印后的DCT系数值
+        return dct_coeff / alpha
+
+    def block_get_wm_dct(self,args):
+        block, shuffler = args
+        block_dct = dct(block)
+        wm = self.extract_wm(block_dct)
+        return wm
+
     def embed(self):
         self.init_block_index()
 
         embed_ca = copy.deepcopy(self.ca)
+        # YUV 是一种用于表示彩色图像的颜色空间。
+        # 在 YUV 颜色空间中，图像的颜色信息被分成亮度（Y）和色度（U、V）两个部分。
+        # 亮度表示图像的明暗程度，而色度则表示颜色的饱和度和色调
+        # 在 JPEG 图像编码过程中，首先将 RGB 图像转换为YUV图像，
+        # 然后对 Y、U、V 三个通道分别进行离散余弦变换（DCT）和量化，并将得到的 DCT 系数编码成 JPEG 格式的数据
         embed_YUV = [np.array([])] * 3
 
         self.idx_shuffle = random_strategy1(self.password_img, self.block_num,
@@ -139,6 +182,7 @@ class WaterMarkCore:
     def block_get_wm(self, args):
         if self.fast_mode:
             return self.block_get_wm_fast(args)
+            # return self.block_get_wm_dct(args)
         else:
             return self.block_get_wm_slow(args)
 

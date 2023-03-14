@@ -4,7 +4,7 @@ from core import WaterMark
 
 bwm = WaterMark(password_img=1, password_wm=1)
 bwm.read_img('pic/ori_img.jpeg')
-wm = '12'
+wm = '123'
 t1 = time.time()
 bwm.read_wm(wm, mode='str')
 bwm.embed('output/embedded.png')
