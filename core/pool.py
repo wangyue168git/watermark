@@ -21,11 +21,7 @@ class AutoPool(object):
         self.mode = mode
         self.processes = processes
 
-        if mode == 'vectorization':
-            pass
-        elif mode == 'cached':
-            pass
-        elif mode == 'multithreading':
+        if mode == 'multithreading':
             from multiprocessing.dummy import Pool as ThreadPool
             self.pool = ThreadPool(processes=processes)
         elif mode == 'multiprocessing':

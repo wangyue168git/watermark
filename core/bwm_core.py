@@ -89,7 +89,6 @@ class WaterMarkCore:
     def block_add_wm(self, arg):
         if self.fast_mode:
             return self.block_add_wm_fast(arg)
-            # return self.block_add_wm_dct(arg)
         else:
             return self.block_add_wm_slow(arg)
 
@@ -198,7 +197,6 @@ class WaterMarkCore:
     def block_get_wm(self, args):
         if self.fast_mode:
             return self.block_get_wm_fast(args)
-            # return self.block_get_wm_dct(args)
         else:
             return self.block_get_wm_slow(args)
 
