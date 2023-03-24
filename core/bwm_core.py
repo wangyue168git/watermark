@@ -11,9 +11,25 @@ from .pool import AutoPool
 import time
 
 
+def block_add_wm_fast(arg):
+    # dct->svd->打水印->逆svd->逆dct
+    wm_bit, wm_size, d1, block, shuffler, i = arg
+    wm_1 = wm_bit[i % wm_size]
+    u, s, v = svd(dct(block))
+    s[0] = (s[0] // d1 + 1 / 4 + 1 / 2 * wm_1) * d1
+    return idct(np.dot(u, np.dot(np.diag(s), v)))
+
+def block_get_wm_fast(args):
+    d1,block, shuffler = args
+    # dct->svd->解水印
+    u, s, v = svd(dct(block))
+    wm = (s[0] % d1 > d1 / 2) * 1
+    return wm
+
+
 class WaterMarkCore:
     def __init__(self, password_img=1, mode='common', processes=None):
-        self.block_shape = np.array([4, 4])
+        self.block_shape = np.array([8, 8])
         self.password_img = password_img
         self.d1, self.d2 = 36, 20  # d1/d2 越大鲁棒性越强,但输出图片的失真越大
 
@@ -154,8 +170,8 @@ class WaterMarkCore:
         self.idx_shuffle = random_strategy1(self.password_img, self.block_num,
                                             self.block_shape[0] * self.block_shape[1])
         for channel in range(3):
-            tmp = self.pool.map(self.block_add_wm,
-                                [(self.ca_block[channel][self.block_index[i]], self.idx_shuffle[i], i)
+            tmp = self.pool.map(block_add_wm_fast,
+                                [(self.wm_bit,self.wm_size, self.d1,self.ca_block[channel][self.block_index[i]], self.idx_shuffle[i], i)
                                  for i in range(self.block_num)])
 
             for i in range(self.block_num):
@@ -218,8 +234,8 @@ class WaterMarkCore:
                                             block_shape=self.block_shape[0] * self.block_shape[1],  # 16
                                             )
         for channel in range(3):
-            wm_block_bit[channel, :] = self.pool.map(self.block_get_wm,
-                                                     [(self.ca_block[channel][self.block_index[i]], self.idx_shuffle[i])
+            wm_block_bit[channel, :] = self.pool.map(block_get_wm_fast,
+                                                     [(self.d1, self.ca_block[channel][self.block_index[i]], self.idx_shuffle[i])
                                                       for i in range(self.block_num)])
         return wm_block_bit
 

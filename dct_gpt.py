@@ -56,7 +56,7 @@ watermarked_img = cv2.imread('watermarked.png', cv2.IMREAD_GRAYSCALE)
 
 t1 = time.time()
 # 提取水印
-watermark = extract_watermark(watermarked_img, len('Hello, world!'))
+watermark = extract_watermark(watermarked_img, len('Hello, world!')+100)
 t2 = time.time()
 print('提取水印时间消耗 = ' + str((t2-t1)* 1000))
 print(watermark)

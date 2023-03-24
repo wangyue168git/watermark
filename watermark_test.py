@@ -15,9 +15,9 @@ def generate_random_string(length):
     return ''.join(random.choice(characters) for i in range(length))
 
 
-test_path = 'pic/1024.jpeg'
-test_count = 20
-test_wm_len = 20
+test_path = 'pic/31187603.png'
+test_count = 1
+test_wm_len = 100
 
 # 打开图片文件
 image = Image.open(test_path)
@@ -29,26 +29,28 @@ width, height = image.size
 print("图片的宽度为：", width, "像素")
 print("图片的高度为：", height, "像素")
 
+if __name__ == '__main__':
+    bwm = WaterMark(password_img=1, password_wm=1,mode='multiprocessing')
+    bwm.read_img(test_path)
+    wm = generate_random_string(test_wm_len)
+    print('水印：' + wm)
+    bwm.read_wm(wm, mode='str')
+    t1 = time.time()
+    for i in range(test_count):
+        # bwm.embed('output/embedded.png')
+        bwm.embed('output/embedded.png')
+    t2 = time.time()
+    print('加水印时间消耗 = ' + str((t2-t1)* 1000/test_count))
 
-bwm = WaterMark(password_img=1, password_wm=1)
-bwm.read_img(test_path)
-wm = generate_random_string(test_wm_len)
-bwm.read_wm(wm, mode='str')
-t1 = time.time()
-for i in range(test_count):
-    bwm.embed('output/embedded.png')
-t2 = time.time()
-print('加水印时间消耗 = ' + str((t2-t1)* 1000/test_count))
-
-len_wm = len(bwm.wm_bit)  # 解水印需要用到长度
-print('Put down the length of wm_bit {len_wm}'.format(len_wm=len_wm))
+    len_wm = len(bwm.wm_bit)  # 解水印需要用到长度
+    print('Put down the length of wm_bit {len_wm}'.format(len_wm=len_wm))
 
 
-#解水印
-bwm1 = WaterMark(password_img=1, password_wm=1)
-t1 = time.time()
-for i in range(test_count):
-    wm_extract = bwm1.extract('output/embedded.png', wm_shape=len_wm, mode='str')
-t2 = time.time()
-print("不攻击的提取结果：", wm_extract)
-print('解水印时间消耗 = ' + str((t2-t1)* 1000/test_count))
+    #解水印
+    bwm1 = WaterMark(password_img=1, password_wm=1,mode='multiprocessing')
+    t1 = time.time()
+    for i in range(test_count):
+        wm_extract = bwm1.extract('output/embedded.png', wm_shape=len_wm, mode='str')
+    t2 = time.time()
+    print("不攻击的提取结果：", wm_extract)
+    print('解水印时间消耗 = ' + str((t2-t1)* 1000/test_count))
