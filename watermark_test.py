@@ -17,7 +17,7 @@ def generate_random_string(length):
 
 test_path = 'pic/31187603.png'
 test_count = 1
-test_wm_len = 100
+test_wm_len = 160
 
 # 打开图片文件
 image = Image.open(test_path)
@@ -30,7 +30,7 @@ print("图片的宽度为：", width, "像素")
 print("图片的高度为：", height, "像素")
 
 if __name__ == '__main__':
-    bwm = WaterMark(password_img=1, password_wm=1,mode='multiprocessing')
+    bwm = WaterMark(password_img=1, password_wm=1,processes=8, mode='multiprocessing')
     bwm.read_img(test_path)
     wm = generate_random_string(test_wm_len)
     print('水印：' + wm)
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
 
     #解水印
-    bwm1 = WaterMark(password_img=1, password_wm=1,mode='multiprocessing')
+    bwm1 = WaterMark(password_img=1, password_wm=1,processes=8, mode='multiprocessing')
     t1 = time.time()
     for i in range(test_count):
         wm_extract = bwm1.extract('output/embedded.png', wm_shape=len_wm, mode='str')

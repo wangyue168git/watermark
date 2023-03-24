@@ -29,7 +29,7 @@ def block_get_wm_fast(args):
 
 class WaterMarkCore:
     def __init__(self, password_img=1, mode='common', processes=None):
-        self.block_shape = np.array([8, 8])
+        self.block_shape = np.array([4, 4])
         self.password_img = password_img
         self.d1, self.d2 = 36, 20  # d1/d2 越大鲁棒性越强,但输出图片的失真越大
 
